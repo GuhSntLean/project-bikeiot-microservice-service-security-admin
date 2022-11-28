@@ -19,7 +19,7 @@ class RefreshTokenProvider {
 
       await refreshTokenRepository.save(refreshToken);
 
-      return refreshToken;
+      return refreshToken.id;
     } catch (error) {
       return new Error("Error generate refreshtoken");
     }

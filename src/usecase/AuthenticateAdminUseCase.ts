@@ -20,14 +20,7 @@ class AuthenticateAdminUseCase {
       return new Error("Login or password invalid");
     }
 
-    let idUser = null;
-
-    if (user.id) {
-      idUser = user.id;
-      return idUser;
-    }
-
-    return null;
+    return user;
   }
 }
 

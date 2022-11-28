@@ -19,23 +19,23 @@ class AuthenticateAdminController {
 
     try {
       const authenticateUserUseCase = new AuthenticateAdminUseCase();
-      const userId: any = await authenticateUserUseCase.authenticate(
+      const user = await authenticateUserUseCase.authenticate(
         intefaceLogin
       );
 
-      if (!(typeof userId === "string")) {
-        return new Error("Error generate refreshtoken or token");
+      if (user instanceof Error) {
+        return response.status(500).json(user.message);
       }
 
       //  Gerando um tokem para o usuario
       const tokenProvider = new TokenProvider();
-      const token = tokenProvider.execute(userId);
+      const token = tokenProvider.execute(user.id, user.role);
 
       // Gerando um refreshtoken
       const refreshTokenProvider = new RefreshTokenProvider();
-      const refreshToken = await refreshTokenProvider.execute(userId);
+      const refreshToken = await refreshTokenProvider.execute(user.id);
 
-      return response.json({ token, refreshToken });
+      return response.json({ token, refreshToken});
     } catch (error) {
       return new Error("Error generate refreshtoken or token");
     }
