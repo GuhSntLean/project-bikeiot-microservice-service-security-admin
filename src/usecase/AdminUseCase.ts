@@ -1,11 +1,11 @@
-import { hash } from "bcrypt";
+import { hash, compare } from "bcrypt";
 import { AdminProvider } from "../provider/AdminProvider";
 import { adminRepository } from "../repository/AdminRepository";
-import { InterfaceAdmin } from "../interfaces/InterfaceAdmin";
-import { Admin , UserRole} from "../models/Admin";
+import { Admin } from "../models/Admin";
 import { RabbitmqServer } from "../server/RabbitmqServer";
+
 class AdminUseCase {
-  async createUser(
+  async createAdmin(
     userName: string,
     email: string,
     password: string,
@@ -34,8 +34,11 @@ class AdminUseCase {
     if (!providerValidation.passwordValidation(password)) {
       return new Error("Password invalid format");
     }
-    
+
     const roleType = providerValidation.roleValidation(role);
+    if (!roleType) {
+      return new Error("Invalid TypeRole");
+    }
 
     try {
       const passwordHash = await hash(password, 8);
@@ -58,42 +61,135 @@ class AdminUseCase {
     }
   }
 
-  async updateUser(id: string, { userName, email }: InterfaceAdmin) {
+  async updateAdmin(id: string, userName: string, email: string, role: string) {
     // TODO: validando com outro usuarios
     const user = await adminRepository.findOneBy({ id: id });
 
+    const providerValidation = new AdminProvider();
+
+    const roleType = providerValidation.roleValidation(role);
+    if (!roleType) {
+      return new Error("Invalid TypeRole");
+    }
+
+    if (!providerValidation.emailValidation(email)) {
+      return new Error("Email already exists or irregular");
+    }
+
     if (Admin) {
       try {
-        await adminRepository
+        const result = await adminRepository
           .createQueryBuilder()
           .update(Admin)
           .set({
             userName: userName || user.userName,
             email: email || user.email,
+            role: roleType,
           })
-          .where("id = id:", { id: id })
+          .where("id = :id", { id: id })
           .execute();
-        return true;
+
+        if (result.affected != 1) {
+          return new Error("Error when updating");
+        }
+
+        const update = await adminRepository.findOneBy({ id: id });
+
+        const resultUpdate = {
+          id: update.id,
+          update: true,
+        };
+
+        return resultUpdate;
       } catch (error) {
         console.log(`Error message: ${error}`);
-        return false;
+        return new Error("Error when update");
       }
     }
   }
 
-  async getUser(id: string) {
+  async updatePassword(id: string, oldpassword: string, newpassword: string) {
+    const providerValidation = new AdminProvider();
+
     const user = await adminRepository.findOneBy({ id: id });
 
     if (!user) {
-      return "false";
+      return new Error("User not found");
     }
-    return user;
+
+    const passwordPass = await compare(oldpassword, user.password);
+
+    if (!passwordPass) {
+      return new Error("Password is invalid");
+    }
+
+    if (
+      oldpassword == newpassword ||
+      !providerValidation.passwordValidation(newpassword)
+    ) {
+      return new Error("Password is invalid");
+    }
+
+    try {
+      const newPassoworsdCrypt = await hash(newpassword, 8);
+
+      const result = await adminRepository
+        .createQueryBuilder()
+        .update(Admin)
+        .set({
+          password: newPassoworsdCrypt || user.password,
+        })
+        .where("id = :id", { id: id })
+        .execute();
+
+      if (result.affected != 1) {
+        return new Error("Error when updating");
+      }
+
+      const update = await adminRepository.findOneBy({ id: id });
+
+      const resultUpdate = {
+        id: update.id,
+        update: true,
+      };
+
+      return resultUpdate;
+    } catch (error) {
+      return new Error("Update error");
+    }
   }
 
-  async getListUser() {
-    const users = await adminRepository.find();
+  async getUser(iduser: string) {
+    try {
+      const user = await adminRepository.findOneBy({ id: iduser });
 
-    return users;
+      if (!user) {
+        return new Error("User not found");
+      }
+
+      const returnUser = {
+        id: user.id,
+        username: user.userName,
+        email: user.email,
+      };
+
+      return returnUser;
+    } catch (error) {
+      return new Error("Find error");
+    }
+  }
+  async getListAdmin() {
+    // const users = await adminRepository.find();
+    try {
+      const users = await adminRepository
+        .createQueryBuilder("user")
+        .select("user.id, user.user_name as username, user.role, user.email")
+        .getRawMany();
+
+      return users;
+    } catch (error) {
+      return new Error("Find Error");
+    }
   }
 }
 

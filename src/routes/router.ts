@@ -11,13 +11,13 @@ const refreshToken = new RefreshTokenController();
 const routes = Router();
 
 routes.post("/login", authenticate.authentication);
-routes.post("/register", adminController.createUser); // criando usuario
 routes.post("/refresh-token", refreshToken.refreshToken);
 
-// // Necessidade de login
-// routes.get("/admin", userController.getUser); // pegando informações do usuario usuario
+routes.post("/admin", adminController.createUser);
+routes.put("/admin", adminController.updateAdmin);
+routes.get("/admin", adminController.getAdmin);
+routes.get("/list-admin", adminController.listAdmin);
 
-// routes.put('/update-admin', userController.updateUser);
-// routes.put('/update-password-admin', userController.changePassword);
+routes.put("/update-password", adminController.changePassword);
 
 export default routes;

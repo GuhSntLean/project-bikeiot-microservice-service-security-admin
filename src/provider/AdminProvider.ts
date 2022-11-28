@@ -26,7 +26,7 @@ class AdminProvider {
       case "editor":
         return UserRole.EDITOR
       default:
-        return UserRole.EDITOR
+        return false
     }
   }
 }
