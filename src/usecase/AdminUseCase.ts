@@ -1,19 +1,26 @@
 import { hash } from "bcrypt";
-import { UserProvider } from "../provider/UserProvider";
-import { userRepository } from "../repository/UserRepository";
-import { InterfaceUser } from "../interfaces/InterfaceUser";
-import { User } from "../models/User";
+import { AdminProvider } from "../provider/AdminProvider";
+import { adminRepository } from "../repository/AdminRepository";
+import { InterfaceAdmin } from "../interfaces/InterfaceAdmin";
+import { Admin , UserRole} from "../models/Admin";
 import { RabbitmqServer } from "../server/RabbitmqServer";
-class UserUseCase {
-  async createUser({ userName, email, password }: InterfaceUser) {
+class AdminUseCase {
+  async createUser(
+    userName: string,
+    email: string,
+    password: string,
+    role: string
+  ) {
     // Verificando se o usuario existe com E-MAIL e USUARIO
     const serverAmqp = new RabbitmqServer();
 
-    const providerValidation = new UserProvider();
-    const existUserName = await userRepository.findOneBy({
+    console.log(role);
+
+    const providerValidation = new AdminProvider();
+    const existUserName = await adminRepository.findOneBy({
       userName: userName,
     });
-    const existEmail = await userRepository.findOneBy({ email: email });
+    const existEmail = await adminRepository.findOneBy({ email: email });
 
     if (existUserName) {
       return new Error("User already exists or irreguar");
@@ -27,36 +34,39 @@ class UserUseCase {
     if (!providerValidation.passwordValidation(password)) {
       return new Error("Password invalid format");
     }
+    
+    const roleType = providerValidation.roleValidation(role);
 
     try {
       const passwordHash = await hash(password, 8);
 
-      const newUser = userRepository.create({
-        userName,
-        email,
+      const newUser = adminRepository.create({
+        userName: userName,
+        email: email,
         password: passwordHash,
+        role: roleType,
       });
 
-      await userRepository.save(newUser);
+      await adminRepository.save(newUser);
 
       await serverAmqp.start();
-      await serverAmqp.publishExchange('common.user', JSON.stringify(newUser));
-      
+      await serverAmqp.publishExchange("common.user", JSON.stringify(newUser));
+
       return newUser;
     } catch (error) {
       return new Error("Error save User");
     }
   }
 
-  async updateUser(id: string, { userName, email }: InterfaceUser) {
+  async updateUser(id: string, { userName, email }: InterfaceAdmin) {
     // TODO: validando com outro usuarios
-    const user = await userRepository.findOneBy({ id: id });
+    const user = await adminRepository.findOneBy({ id: id });
 
-    if (user) {
+    if (Admin) {
       try {
-        await userRepository
+        await adminRepository
           .createQueryBuilder()
-          .update(User)
+          .update(Admin)
           .set({
             userName: userName || user.userName,
             email: email || user.email,
@@ -72,7 +82,7 @@ class UserUseCase {
   }
 
   async getUser(id: string) {
-    const user = await userRepository.findOneBy({ id: id });
+    const user = await adminRepository.findOneBy({ id: id });
 
     if (!user) {
       return "false";
@@ -81,10 +91,10 @@ class UserUseCase {
   }
 
   async getListUser() {
-    const users = await userRepository.find();
+    const users = await adminRepository.find();
 
     return users;
   }
 }
 
-export { UserUseCase };
+export { AdminUseCase };

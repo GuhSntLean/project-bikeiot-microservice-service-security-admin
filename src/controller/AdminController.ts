@@ -1,16 +1,18 @@
 import { Request, Response } from "express";
-import { UserUseCase } from "../usecase/UserUseCase";
+import { AdminUseCase } from "../usecase/AdminUseCase";
 
-class UserController {
+class AdminController {
   async createUser(request: Request, response: Response) {
     try {
-      const { userName, email, password } = request.body;
-      const userUseCase = new UserUseCase();
-      const result = await userUseCase.createUser({
-        userName,
+      const { username, email, password , role } = request.body;
+      
+      const userUseCase = new AdminUseCase();
+      const result = await userUseCase.createUser(
+        username,
         email,
         password,
-      });
+        role
+      );
 
       if (result instanceof Error) {
         return response.status(400).json(result.message);
@@ -36,4 +38,4 @@ class UserController {
 
 }
 
-export { UserController };
+export { AdminController };

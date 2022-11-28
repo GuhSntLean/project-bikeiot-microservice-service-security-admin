@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { AuthenticateUserUseCase } from "../usecase/AuthenticateUserUseCase";
+import { AuthenticateAdminUseCase } from "../usecase/AuthenticateAdminUseCase";
 import { InterfaceRequest } from "../interfaces/InterfaceRequest";
 import { TokenProvider } from "../provider/TokenProvider";
 import { RefreshTokenProvider } from "../provider/RefreshTokenProvider";
 
-class AuthenticateUserController {
+class AuthenticateAdminController {
   async authentication(request: Request, response: Response) {
     const { username, password } = request.body;
 
@@ -18,7 +18,7 @@ class AuthenticateUserController {
     };
 
     try {
-      const authenticateUserUseCase = new AuthenticateUserUseCase();
+      const authenticateUserUseCase = new AuthenticateAdminUseCase();
       const userId: any = await authenticateUserUseCase.authenticate(
         intefaceLogin
       );
@@ -42,4 +42,4 @@ class AuthenticateUserController {
   }
 }
 
-export { AuthenticateUserController };
+export { AuthenticateAdminController };

@@ -1,7 +1,7 @@
-interface InterfaceUser {
+interface InterfaceAdmin {
   userName: string;
   email: string;
   password: string;
 }
 
-export { InterfaceUser };
+export { InterfaceAdmin };

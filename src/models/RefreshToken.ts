@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from "typeorm";
 import { v4 as uuid } from "uuid";
-import { User } from "./User";
+import { Admin } from "./Admin";
 
 @Entity("refresh_token")
 class RefreshToken {
@@ -10,9 +10,9 @@ class RefreshToken {
   @Column({ name: "expire_in", type: "bigint" })
   expireIn: number;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => Admin, (user) => user.id)
   @JoinColumn({ name: "user_id" })
-  userId: User;
+  userId: Admin;
 
   constructor() {
     if (!this.id) {

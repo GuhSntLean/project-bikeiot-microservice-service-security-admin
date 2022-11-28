@@ -1,12 +1,12 @@
 import { compare } from "bcrypt";
-import { userRepository } from "../repository/UserRepository";
+import { adminRepository } from "../repository/AdminRepository";
 import { InterfaceRequest } from "../interfaces/InterfaceRequest";
 
-class AuthenticateUserUseCase {
+class AuthenticateAdminUseCase {
   async authenticate({ login, password }: InterfaceRequest) {
     let user = null;
 
-    user = await userRepository.findOneBy({
+    user = await adminRepository.findOneBy({
       userName: login,
     });
 
@@ -31,4 +31,4 @@ class AuthenticateUserUseCase {
   }
 }
 
-export { AuthenticateUserUseCase };
+export { AuthenticateAdminUseCase };

@@ -1,26 +1,23 @@
 import { Router } from "express";
 
-import { AuthenticateUserController } from "../controller/AuthenticateUserController";
+import { AuthenticateAdminController } from "../controller/AuthenticateAdminController";
 import { RefreshTokenController } from "../controller/RefreshTokenController";
-import { UserController } from "../controller/UserController";
+import { AdminController } from "../controller/AdminController";
 
-const userController = new UserController();
-const authenticate = new AuthenticateUserController();
+const adminController = new AdminController();
+const authenticate = new AuthenticateAdminController();
 const refreshToken = new RefreshTokenController();
 
 const routes = Router();
 
-// Sem necessidade de login
 routes.post("/login", authenticate.authentication);
-routes.post("/register", userController.createUser); // criando usuario
+routes.post("/register", adminController.createUser); // criando usuario
 routes.post("/refresh-token", refreshToken.refreshToken);
 
-// Necessidade de login
-routes.get("/user"); // pegando informações do usuario usuario
-routes.post("/user"); // modificando usuario (username, email)
-routes.put("/user"); // modificando usuario (username, email)
+// // Necessidade de login
+// routes.get("/admin", userController.getUser); // pegando informações do usuario usuario
 
-routes.post("/change-password"); // modificando password do usuario
-routes.post("/forgot-password"); // caso tenha esquecido a senha
+// routes.put('/update-admin', userController.updateUser);
+// routes.put('/update-password-admin', userController.changePassword);
 
 export default routes;

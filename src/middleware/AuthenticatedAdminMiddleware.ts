@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { verify } from "jsonwebtoken";
 
-class AuthenticatedAdministratorMiddleware {
+class AuthenticatedAdminMiddleware {
   ensureAuthenticated(
     request: Request,
     response: Response,
@@ -29,4 +29,4 @@ class AuthenticatedAdministratorMiddleware {
   }
 }
 
-export default AuthenticatedAdministratorMiddleware;
+export default AuthenticatedAdminMiddleware;

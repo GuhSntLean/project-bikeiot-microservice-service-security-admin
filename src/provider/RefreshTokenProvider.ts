@@ -1,10 +1,10 @@
 import dayjs from "dayjs";
 import { refreshTokenRepository } from "../repository/RefreshTokenRepository";
-import { userRepository } from "../repository/UserRepository";
+import { adminRepository } from "../repository/AdminRepository";
 
 class RefreshTokenProvider {
   async execute(idUser: string) {
-    const user = await userRepository.findOneBy({ id: idUser });
+    const user = await adminRepository.findOneBy({ id: idUser });
     if (!user) {
       return new Error("Token not found");
     }
