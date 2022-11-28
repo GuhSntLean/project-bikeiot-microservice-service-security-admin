@@ -13,16 +13,23 @@ class RefreshTokenUseCase {
   }
 
   async verifyToken(refreshTokenId: string) {
-    const existRefreshToken = await refreshTokenRepository.findOneBy({
-      id: refreshTokenId,
+    const existRefreshToken = await refreshTokenRepository.findOne({
+      where: {id: refreshTokenId},
+      relations: {
+        userId: true,
+      },
     });
 
     if (!existRefreshToken) {
       return new Error("Not authorized");
     }
 
+    // console.log(existRefreshToken)
+
     const tokenProvider = new TokenProvider();
-    const token = tokenProvider.execute(existRefreshToken.userId.id);
+    const token = tokenProvider.execute(existRefreshToken.userId.id, existRefreshToken.userId.role);
+
+    console.log(token)
 
     return token;
   }
