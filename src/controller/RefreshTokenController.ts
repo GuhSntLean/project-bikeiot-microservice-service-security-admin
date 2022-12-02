@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { SimpleConsoleLogger } from "typeorm";
 import { RefreshTokenUseCase } from "../usecase/RefreshTokenUseCase";
 
 class RefreshTokenController {

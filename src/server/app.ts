@@ -3,7 +3,7 @@ import http from "http";
 import routes from "../routes/router";
 
 const app = express();
-const appPort = process.env.PORT || 3000;
+const appPort = process.env.PORT || 3001;
 
 const httpServer = http.createServer(app);
 

@@ -3,6 +3,8 @@ import { AdminProvider } from "../provider/AdminProvider";
 import { adminRepository } from "../repository/AdminRepository";
 import { Admin } from "../models/Admin";
 import { RabbitmqServer } from "../server/RabbitmqServer";
+import { InterfaceResponseAdmin } from "../interfaces/InterfaceAdmin";
+import { validate as uuid } from "uuid";
 
 class AdminUseCase {
   async createAdmin(
@@ -13,8 +15,6 @@ class AdminUseCase {
   ) {
     // Verificando se o usuario existe com E-MAIL e USUARIO
     const serverAmqp = new RabbitmqServer();
-
-    console.log(role);
 
     const providerValidation = new AdminProvider();
     const existUserName = await adminRepository.findOneBy({
@@ -30,7 +30,6 @@ class AdminUseCase {
       return new Error("Email already exists or irregular");
     }
 
-    console.log(providerValidation.passwordValidation(password));
     if (!providerValidation.passwordValidation(password)) {
       return new Error("Password invalid format");
     }
@@ -50,12 +49,22 @@ class AdminUseCase {
         role: roleType,
       });
 
-      await adminRepository.save(newUser);
+      const result = await adminRepository.save(newUser);
+
+      const returnResult: InterfaceResponseAdmin = {
+        id: result.id,
+        username: result.userName,
+        email: result.email,
+        role: result.role,
+      };
 
       await serverAmqp.start();
-      await serverAmqp.publishExchange("common.user", JSON.stringify(newUser));
+      await serverAmqp.publishExchange(
+        "admin.user",
+        JSON.stringify(returnResult)
+      );
 
-      return newUser;
+      return returnResult;
     } catch (error) {
       return new Error("Error save User");
     }
@@ -63,7 +72,17 @@ class AdminUseCase {
 
   async updateAdmin(id: string, userName: string, email: string, role: string) {
     // TODO: validando com outro usuarios
+    const serverAmqp = new RabbitmqServer();
+
+    if (!uuid(id)) {
+      return new Error("User not found");
+    }
+
     const user = await adminRepository.findOneBy({ id: id });
+
+    if (!user) {
+      return new Error("User not found");
+    }
 
     const providerValidation = new AdminProvider();
 
@@ -93,14 +112,22 @@ class AdminUseCase {
           return new Error("Error when updating");
         }
 
-        const update = await adminRepository.findOneBy({ id: id });
+        const updateResult = await adminRepository.findOneBy({ id: id });
 
-        const resultUpdate = {
-          id: update.id,
-          update: true,
+        const returnResult: InterfaceResponseAdmin = {
+          id: updateResult.id,
+          username: updateResult.userName,
+          email: updateResult.email,
+          role: updateResult.role,
         };
 
-        return resultUpdate;
+        await serverAmqp.start();
+        await serverAmqp.publishExchange(
+          "admin.user",
+          JSON.stringify(returnResult)
+        );
+
+        return returnResult;
       } catch (error) {
         console.log(`Error message: ${error}`);
         return new Error("Error when update");
@@ -110,6 +137,10 @@ class AdminUseCase {
 
   async updatePassword(id: string, oldpassword: string, newpassword: string) {
     const providerValidation = new AdminProvider();
+
+    if (!uuid(id)) {
+      return new Error("User not found");
+    }
 
     const user = await adminRepository.findOneBy({ id: id });
 
@@ -160,13 +191,17 @@ class AdminUseCase {
   }
 
   async getUser(iduser: string) {
+    if (!uuid(iduser)) {
+      return new Error("User not found");
+    }
+
     try {
       const user = await adminRepository.findOneBy({ id: iduser });
 
       if (!user) {
         return new Error("User not found");
       }
-
+      console.log(user);
       const returnUser = {
         id: user.id,
         username: user.userName,
