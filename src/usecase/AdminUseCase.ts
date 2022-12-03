@@ -15,8 +15,8 @@ class AdminUseCase {
   ) {
     // Verificando se o usuario existe com E-MAIL e USUARIO
     const serverAmqp = new RabbitmqServer();
-
     const providerValidation = new AdminProvider();
+
     const existUserName = await adminRepository.findOneBy({
       userName: userName,
     });
@@ -73,65 +73,74 @@ class AdminUseCase {
   async updateAdmin(id: string, userName: string, email: string, role: string) {
     // TODO: validando com outro usuarios
     const serverAmqp = new RabbitmqServer();
+    const providerValidation = new AdminProvider();
 
     if (!uuid(id)) {
       return new Error("User not found");
     }
 
     const user = await adminRepository.findOneBy({ id: id });
-
     if (!user) {
       return new Error("User not found");
     }
 
-    const providerValidation = new AdminProvider();
+    const validateUsername = await adminRepository.findOneBy({
+      userName: userName,
+    });
+    const validateEmail = await adminRepository.findOneBy({ email: email });
+
+    if (validateUsername && validateUsername.id != id) {
+      return new Error("Username is being used or is invalid");
+    }
+
+    console.log(providerValidation.emailValidation(email));
+    if (
+      (validateEmail && validateEmail.id != id) ||
+      !providerValidation.emailValidation(email)
+    ) {
+      return new Error("Email is being used or is invalid");
+    }
 
     const roleType = providerValidation.roleValidation(role);
     if (!roleType) {
       return new Error("Invalid TypeRole");
     }
 
-    if (!providerValidation.emailValidation(email)) {
-      return new Error("Email already exists or irregular");
-    }
+    try {
+      const result = await adminRepository
+        .createQueryBuilder()
+        .update(Admin)
+        .set({
+          userName: userName || user.userName,
+          email: email || user.email,
+          role: roleType,
+        })
+        .where("id = :id", { id: id })
+        .execute();
 
-    if (Admin) {
-      try {
-        const result = await adminRepository
-          .createQueryBuilder()
-          .update(Admin)
-          .set({
-            userName: userName || user.userName,
-            email: email || user.email,
-            role: roleType,
-          })
-          .where("id = :id", { id: id })
-          .execute();
-
-        if (result.affected != 1) {
-          return new Error("Error when updating");
-        }
-
-        const updateResult = await adminRepository.findOneBy({ id: id });
-
-        const returnResult: InterfaceResponseAdmin = {
-          id: updateResult.id,
-          username: updateResult.userName,
-          email: updateResult.email,
-          role: updateResult.role,
-        };
-
-        await serverAmqp.start();
-        await serverAmqp.publishExchange(
-          "admin.user",
-          JSON.stringify(returnResult)
-        );
-
-        return returnResult;
-      } catch (error) {
-        console.log(`Error message: ${error}`);
-        return new Error("Error when update");
+      if (result.affected != 1) {
+        return new Error("Error when updating");
       }
+
+      const updateResult = await adminRepository.findOneBy({ id: id });
+
+      const returnResult: InterfaceResponseAdmin = {
+        id: updateResult.id,
+        username: updateResult.userName,
+        email: updateResult.email,
+        role: updateResult.role,
+      };
+
+      await serverAmqp.start();
+      await serverAmqp.publishExchange(
+        "admin.user",
+        JSON.stringify(returnResult)
+      );
+
+      return returnResult;
+    } catch (error) {
+      console.log(`Error message: ${error}`);
+      return new Error("Error when update");
     }
   }
 
@@ -143,13 +152,11 @@ class AdminUseCase {
     }
 
     const user = await adminRepository.findOneBy({ id: id });
-
     if (!user) {
       return new Error("User not found");
     }
 
     const passwordPass = await compare(oldpassword, user.password);
-
     if (!passwordPass) {
       return new Error("Password is invalid");
     }
@@ -201,11 +208,12 @@ class AdminUseCase {
       if (!user) {
         return new Error("User not found");
       }
-      console.log(user);
+
       const returnUser = {
         id: user.id,
         username: user.userName,
         email: user.email,
+        role: user.role
       };
 
       return returnUser;

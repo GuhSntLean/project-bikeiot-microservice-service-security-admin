@@ -11,6 +11,13 @@ class RefreshTokenProvider {
 
     try {
       const value = dayjs().add(15, "days").unix();
+      const refreshTokenRemove = await refreshTokenRepository.findOne({
+        where: { userId: { id: idUser }},
+      });
+
+      if(refreshTokenRemove){
+        await refreshTokenRepository.remove(refreshTokenRemove);
+      }
 
       const refreshToken = refreshTokenRepository.create({
         expireIn: value,

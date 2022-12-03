@@ -24,7 +24,7 @@ class AuthenticateAdminController {
       );
 
       if (user instanceof Error) {
-        return response.status(500).json(user.message);
+        return response.status(400).json({error: user.message});
       }
 
       //  Gerando um tokem para o usuario

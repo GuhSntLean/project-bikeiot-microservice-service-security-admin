@@ -6,14 +6,14 @@ class RefreshTokenController {
     const { refresh_token } = request.body;
 
     if (!refresh_token) {
-      return new Error("Not authorized");
+      return response.status(400).json({error: "Not authorized"});
     }
 
     const refreshToken = new RefreshTokenUseCase();
     const token = await refreshToken.verifyToken(refresh_token);
 
     if (token instanceof Error) {
-      return response.status(400).json(token.message);
+      return response.status(400).json({error: token.message});
     }
 
     return response.status(201).json({ token: token });
