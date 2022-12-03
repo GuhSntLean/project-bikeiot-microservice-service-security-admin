@@ -14,14 +14,37 @@ const refreshToken = new RefreshTokenController();
 
 const routes = Router();
 
+// Rotas não de autheticação
 routes.post("/login", authenticate.authentication);
 routes.post("/refresh-token", refreshToken.refreshToken);
-routes.post("/admin", adminController.createUser);
 
-routes.put("/admin", adminController.updateAdmin);
-routes.get("/admin", adminController.getAdmin);
-routes.get("/list-admin", adminController.listAdmin);
+// Rotas que precisa que o usuario esteja authenticado
+routes.post(
+  "/admin",
+  authenticatedAdminMiddleware.ensureAuthenticated,
+  adminController.createUser
+);
 
-routes.put("/update-password", adminController.changePassword);
+routes.put(
+  "/admin",
+  authenticatedAdminMiddleware.ensureAuthenticated,
+  adminController.updateAdmin
+);
+routes.get(
+  "/admin",
+  authenticatedAdminMiddleware.ensureAuthenticated,
+  adminController.getAdmin
+);
+routes.get(
+  "/list-admin",
+  authenticatedAdminMiddleware.ensureAuthenticated,
+  adminController.listAdmin
+);
+
+routes.put(
+  "/update-password",
+  authenticatedAdminMiddleware.ensureAuthenticated,
+  adminController.changePassword
+);
 
 export default routes;
