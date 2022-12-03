@@ -16,14 +16,17 @@ class AuthenticatedAdminMiddleware {
     }
 
     const [, token] = authToken.split(" ");
-    try{
-        verify(token, "7fb90d91-c44f-4123-b424-3f1852ba4687", (err, decoded) => {
-          console.log(decoded);
-        });
-    }catch (error) {
+    try {
+      const verifyUser = verify(token, "7fb90d91-c44f-4123-b424-3f1852ba4687");
+      if(!verifyUser.sub){
         return response.status(401).json({
-            message: "Invalid token"
+          message: "Token is missiong",
         });
+      }
+    } catch (error) {
+      return response.status(401).json({
+        message: "Invalid token",
+      });
     }
     next();
   }

@@ -4,6 +4,10 @@ import { AuthenticateAdminController } from "../controller/AuthenticateAdminCont
 import { RefreshTokenController } from "../controller/RefreshTokenController";
 import { AdminController } from "../controller/AdminController";
 
+import AuthenticatedAdminMiddleware from "../middleware/AuthenticatedAdminMiddleware";
+
+const authenticatedAdminMiddleware = new AuthenticatedAdminMiddleware();
+
 const adminController = new AdminController();
 const authenticate = new AuthenticateAdminController();
 const refreshToken = new RefreshTokenController();
@@ -12,8 +16,8 @@ const routes = Router();
 
 routes.post("/login", authenticate.authentication);
 routes.post("/refresh-token", refreshToken.refreshToken);
-
 routes.post("/admin", adminController.createUser);
+
 routes.put("/admin", adminController.updateAdmin);
 routes.get("/admin", adminController.getAdmin);
 routes.get("/list-admin", adminController.listAdmin);

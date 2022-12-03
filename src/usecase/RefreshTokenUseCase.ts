@@ -1,9 +1,10 @@
+import { validate } from "uuid";
 import { TokenProvider } from "../provider/TokenProvider";
 import { refreshTokenRepository } from "../repository/RefreshTokenRepository";
 
 class RefreshTokenUseCase {
   async generateRefreshToken(userId: string) {
-    const existRefreshToken = refreshTokenRepository.find({
+    const existRefreshToken = await refreshTokenRepository.find({
       where: { userId: { id: userId } },
     });
 
@@ -13,8 +14,12 @@ class RefreshTokenUseCase {
   }
 
   async verifyToken(refreshTokenId: string) {
+    if (!validate(refreshTokenId)) {
+      return new Error("Not authorized");
+    }
+
     const existRefreshToken = await refreshTokenRepository.findOne({
-      where: {id: refreshTokenId},
+      where: { id: refreshTokenId },
       relations: {
         userId: true,
       },
@@ -25,13 +30,17 @@ class RefreshTokenUseCase {
     }
 
     // console.log(existRefreshToken)
+    try {
+      const tokenProvider = new TokenProvider();
+      const token = tokenProvider.execute(
+        existRefreshToken.userId.id,
+        existRefreshToken.userId.role
+      );
 
-    const tokenProvider = new TokenProvider();
-    const token = tokenProvider.execute(existRefreshToken.userId.id, existRefreshToken.userId.role);
-
-    console.log(token)
-
-    return token;
+      return token;
+    } catch (error) {
+      return new Error(error);
+    }
   }
 }
 
