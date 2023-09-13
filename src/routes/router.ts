@@ -24,18 +24,17 @@ routes.post(
   authenticatedAdminMiddleware.ensureAuthenticated,
   adminController.createUser
 );
-
 routes.put(
   "/admin",
   authenticatedAdminMiddleware.ensureAuthenticated,
   adminController.updateAdmin
 );
-routes.get(
-  "/admin",
+routes.post(
+  "/get-admin",
   authenticatedAdminMiddleware.ensureAuthenticated,
   adminController.getAdmin
 );
-routes.get(
+routes.post(
   "/list-admin",
   authenticatedAdminMiddleware.ensureAuthenticated,
   adminController.listAdmin

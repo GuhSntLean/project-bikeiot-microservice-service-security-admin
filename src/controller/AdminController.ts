@@ -25,7 +25,7 @@ class AdminController {
       return response.status(201).json(result);
     } catch (error) {
       console.log(error);
-      return response.json(error);
+      return response.status(500).json(error.message);
     }
   }
 
@@ -54,7 +54,7 @@ class AdminController {
   async changePassword(request: Request, response: Response) {
     try {
       const { id, oldpassword, newpassword } = request.body;
-
+      console.log(id)
       if (!id || !oldpassword || !newpassword) {
         return response.status(400).json({ error: "Field is missing" });
       }
